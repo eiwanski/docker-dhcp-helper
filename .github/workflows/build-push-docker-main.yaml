@@ -1,16 +1,17 @@
-name: build-push-docker-manual
+name: build-push-docker-main
 
 on:
   # trigger the workflow on pushes within listed paths to the main branch
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'Dockerfile'
-  #     - 'src/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile'
+      - 'src/**'
   # trigger the workflow on pull requests within listed paths to the main branch
   # pull_request:
-  #   branches: [ master ]
+  #   branches:
+  #     - main
   #   paths:
   #     - 'Dockerfile'
   #     - 'src/**'
@@ -37,6 +38,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set Git Short Commit SHA
+        run: |
+          GIT_COMMIT_SHA_SHORT="$(git rev-parse --short ${{ github.sha }})"
+          echo "git_commit_sha_short=$GIT_COMMIT_SHA_SHORT" >> $GITHUB_ENV
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -59,4 +65,4 @@ jobs:
           cache-to: type=gha,scope=${{ github.workflow }},mode=max
           tags: |
             ${{ vars.DOCKERHUB_REPOSITORY }}:latest
-            ${{ vars.DOCKERHUB_REPOSITORY }}:nightly-${{ github.sha }}
+            ${{ vars.DOCKERHUB_REPOSITORY }}:${{ env.git_commit_sha_short }}
