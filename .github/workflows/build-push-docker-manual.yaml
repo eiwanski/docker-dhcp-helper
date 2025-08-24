@@ -1,4 +1,4 @@
-name: build-nightly-docker
+name: build-push-docker-manual
 
 on:
   # trigger the workflow on pushes within listed paths to the main branch
@@ -15,8 +15,8 @@ on:
   #     - 'Dockerfile'
   #     - 'src/**'
   # nightly builds at 8am UTC
-  schedule:
-    - cron: '0 8 * * *'
+  # schedule:
+  #   - cron: '0 8 * * *'
   # allows this workflow to be ran triggered manually from the actions tab
   workflow_dispatch:
 
