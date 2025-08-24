@@ -51,8 +51,8 @@ jobs:
       - name: Get current image digest (if exists)
         id: get_digest
         run: |
-          IMAGE_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:latest" \
-          CURRENT_DIGEST=$(docker pull $IMAGE_NAME && docker manifest inspect $IMAGE_NAME | grep digest | head -1 | awk -F '"' '{print $4}' || echo "") \
+          IMAGE_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:latest"; \
+          CURRENT_DIGEST=$(docker pull $IMAGE_NAME > /dev/null 2>&1 && docker manifest inspect $IMAGE_NAME | grep digest | head -1 | awk -F '"' '{print $4}' || echo ""); \
           echo "current_digest=$CURRENT_DIGEST" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
