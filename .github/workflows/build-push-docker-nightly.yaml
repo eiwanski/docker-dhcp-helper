@@ -69,8 +69,8 @@ jobs:
       - name: Compare Digests
         id: compare_digests
         run: |
-          echo "curbuild_digest = {{ steps.get_digest.outputs.current_digest }}" \
-          echp "newbuild_digest = {{ steps.build_image.outputs.digest }}"
+          echo "curbuild_digest = ${{ steps.get_digest.outputs.current_digest }}" \
+          echp "newbuild_digest = ${{ steps.build_image.outputs.digest }}"
 
 #      - name: Get new image digest
 #        id: new_digest
