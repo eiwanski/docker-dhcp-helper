@@ -32,7 +32,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: false # Do not push yet
+          load: true # Load the image into the local Docker cache
           tags: ${{ vars.DOCKERHUB_REPOSITORY }}:temp_build # Temporary tag for comparison
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,scope=${{ github.workflow }},mode=max
@@ -41,11 +43,12 @@ jobs:
       - name: Compare Image Digest With Latest Image
         id: compare_digest_with_latest
         run: |
-          IMAGE_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:latest"
-          IMAGE_BUILT_DIGEST=$(cat /tmp/temp_build_image_digest.txt || echo "")
-          IMAGE_PULLED_DIGEST=$(docker pull $IMAGE_NAME > /dev/null 2>&1 && docker inspect $IMAGE_NAME | jq -r '.[].RepoDigests[0] | split("@") | .[1]' || echo "")
-          echo "Built digest for $IMAGE_NAME: $IMAGE_BUILT_DIGEST"
-          echo "Pulled digest for $IMAGE_NAME: $IMAGE_PULLED_DIGEST"
+          IMAGE_BUILT_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:temp_build"
+          IMAGE_PULLED_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:latest"
+          IMAGE_BUILT_DIGEST=$(docker inspect $IMAGE_BUILT_NAME | jq -r '.[].RepoDigests[0] | split("@") | .[1]' || echo "")
+          IMAGE_PULLED_DIGEST=$(docker pull $IMAGE_PULLED_NAME > /dev/null 2>&1 && docker inspect $IMAGE_PULLED_NAME | jq -r '.[].RepoDigests[0] | split("@") | .[1]' || echo "")
+          echo "Built digest for $IMAGE_BUILT_NAME: $IMAGE_BUILT_DIGEST"
+          echo "Pulled digest for $IMAGE_PULLED_NAME: $IMAGE_PULLED_DIGEST"
           if [ "$IMAGE_BUILT_DIGEST" == "$IMAGE_PULLED_DIGEST" ]; then
             echo "Digests match. No push needed."
             echo "should match the following images:"
@@ -57,6 +60,8 @@ jobs:
           fi
           echo "${{ vars.DOCKERHUB_REPOSITORY }}:latest"
           echo "${{ vars.DOCKERHUB_REPOSITORY }}:nightly-${{ env.git_commit_sha_short }}"
+          echo ""
+          echo "DEBUG: step output digest=$(cat /tmp/temp_build_image_digest.txt)"
           # Clean up temporary image
           docker rmi ${{ vars.DOCKERHUB_REPOSITORY }}:temp_build || true
 
