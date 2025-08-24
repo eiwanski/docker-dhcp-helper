@@ -51,9 +51,8 @@ jobs:
       - name: Get current image digest (if exists)
         id: get_digest
         run: |
-          # Try to pull the latest image and get its digest
-          IMAGE_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:latest"
-          CURRENT_DIGEST=$(docker pull $IMAGE_NAME 2>/dev/null && docker inspect $IMAGE_NAME | jq -r '.[0].RepoDigests[0]' | cut -d'@' -f2 || echo "")
+          IMAGE_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:latest" \
+          CURRENT_DIGEST=$(docker pull $IMAGE_NAME 2>/dev/null && docker inspect $IMAGE_NAME | jq -r '.[0].RepoDigests[0]' | cut -d'@' -f2 || echo "") \
           echo "current_digest=$CURRENT_DIGEST" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
@@ -70,8 +69,8 @@ jobs:
       - name: Get new image digest
         id: new_digest
         run: |
-          IMAGE_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:temp_build"
-          NEW_DIGEST=$(docker inspect $IMAGE_NAME | jq -r '.[0].RepoDigests[0]' | cut -d'@' -f2)
+          IMAGE_NAME="${{ vars.DOCKERHUB_REPOSITORY }}:temp_build" \
+          NEW_DIGEST=$(docker inspect $IMAGE_NAME | jq -r '.[0].RepoDigests[0]' | cut -d'@' -f2) \
           echo "new_digest=$NEW_DIGEST" >> $GITHUB_OUTPUT
 
       - name: Log in to Docker Hub
