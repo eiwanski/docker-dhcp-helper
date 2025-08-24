@@ -47,12 +47,18 @@ jobs:
           echo "Built digest for $IMAGE_NAME: $IMAGE_BUILT_DIGEST"
           echo "Pulled digest for $IMAGE_NAME: $IMAGE_PULLED_DIGEST"
           if [ "$IMAGE_BUILT_DIGEST" == "$IMAGE_PULLED_DIGEST" ]; then
-            echo "needs_push=false" >> $GITHUB_OUTPUT
             echo "Digests match. No push needed."
+            echo "should match the following images:"
+            echo "needs_push=false" >> $GITHUB_OUTPUT
           else
-            echo "needs_push=true" >> $GITHUB_OUTPUT
             echo "Digests differ. Push needed."
+            echo "will push the following images:"
+            echo "needs_push=true" >> $GITHUB_OUTPUT
           fi
+          echo "${{ vars.DOCKERHUB_REPOSITORY }}:latest"
+          echo "${{ vars.DOCKERHUB_REPOSITORY }}:nightly-${{ env.git_commit_sha_short }}"
+          # Clean up temporary image
+          docker rmi ${{ vars.DOCKERHUB_REPOSITORY }}:temp_build || true
 
       # - name: Log in to Docker Hub
       #   if: steps.compare_digest_with_latest.outputs.needs_push == 'true'
@@ -71,5 +77,5 @@ jobs:
       #     cache-from: type=gha,scope=${{ github.workflow }}
       #     cache-to: type=gha,scope=${{ github.workflow }},mode=max
       #     tags: |
-      #       ${{ vars.DOCKERHUB_REPOSITORY }}:nightly-${{ github.sha }}
+      #       ${{ vars.DOCKERHUB_REPOSITORY }}:nightly-${{ env.git_commit_sha_short }}
       #       ${{ vars.DOCKERHUB_REPOSITORY }}:latest
