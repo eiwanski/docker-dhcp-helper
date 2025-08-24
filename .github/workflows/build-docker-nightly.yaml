@@ -27,8 +27,8 @@ jobs:
     # strategy:
     #   matrix:
     #     platform: [linux/amd64, linux/arm64, linux/arm/v7]
-    # env:
-    #   DOCKER_CLI_EXPERIMENTAL: enabled
+    env:
+      DOCKERHUB_REPO: ${{ vars.DOCKERHUB_REPO }}
     # permissions:
     #   contents: read
     #   packages: write
@@ -52,7 +52,7 @@ jobs:
         id: get_digest
         run: |
           # Try to pull the latest image and get its digest
-          IMAGE_NAME="${{ vars.DOCKERHUB_REPO }}:latest"
+          IMAGE_NAME="${{ env.DOCKERHUB_REPO }}:latest"
           CURRENT_DIGEST=$(docker pull $IMAGE_NAME 2>/dev/null && docker inspect --format='{{.Digest}}' $IMAGE_NAME || echo "")
           echo "current_digest=$CURRENT_DIGEST" >> $GITHUB_OUTPUT
 
@@ -62,14 +62,14 @@ jobs:
         with:
           context: .
           push: false # Do not push yet
-          tags: ${{ vars.DOCKERHUB_REPO }}:temp_build # Temporary tag for comparison
+          tags: ${{ env.DOCKERHUB_REPO }}:temp_build # Temporary tag for comparison
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,scope=${{ github.workflow }},mode=max
 
       - name: Get new image digest
         id: new_digest
         run: |
-          IMAGE_NAME="${{ vars.DOCKERHUB_REPO }}:temp_build"
+          IMAGE_NAME="${{ env.DOCKERHUB_REPO }}:temp_build"
           NEW_DIGEST=$(docker inspect --format='{{.Digest}}' $IMAGE_NAME)
           echo "new_digest=$NEW_DIGEST" >> $GITHUB_OUTPUT
 
@@ -90,5 +90,5 @@ jobs:
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,scope=${{ github.workflow }},mode=max
           tags: |
-            ${{ vars.DOCKERHUB_REPO }}:latest
-            ${{ vars.DOCKERHUB_REPO }}:nightly-${{ github.sha }}
+            ${{ env.DOCKERHUB_REPO }}:latest
+            ${{ env.DOCKERHUB_REPO }}:nightly-${{ github.sha }}
