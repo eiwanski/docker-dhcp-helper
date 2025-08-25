@@ -16,6 +16,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
+        with:
+          daemon-config: |
+            {
+              "debug": true,
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+          # version: '28.0.4' # Specify the Docker version you want to use
+          # experimental: true # Enable experimental features if needed
+          # install-buildx: true # Ensure Buildx is installed
+          # install-qemu: true # Ensure QEMU is installed
+          # run-args: --privileged # Additional arguments for the Docker daemon
+          # timeout: 30 # Timeout in seconds for setting up Docker
+          # retries: 3 # Number of retries if setup fails
+          # retry-delay: 10 # Delay in seconds between retries
+          # retry-backoff: 2 # Backoff multiplier for retries
+          # cleanup: true # Clean up Docker resources after the job
+          # cleanup-level: full # Level of cleanup: basic, intermediate, full
+          # log-level: info # Log level: debug, info, warn, error
+          # log-format: text # Log format: text, json
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -30,9 +54,17 @@ jobs:
       - name: Build Docker image
         id: build_image
         uses: docker/build-push-action@v6
+        env:
+          SOURCE_DATE_EPOCH: 0
         with:
           context: .
           push: false # Do not push yet
+          platforms: linux/amd64,linux/arm64
+          # labels: |
+          #   org.opencontainers.image.source=${{ github.repository }}
+          #   org.opencontainers.image.revision=${{ github.sha }}
+          #   org.opencontainers.image.created=${{ steps.build_image.outputs.buildkitd-started-at }}
+          #   org.opencontainers.image.version=${{ github.sha }}
           load: true # Load the image into the local Docker cache
           tags: ${{ vars.DOCKERHUB_REPOSITORY }}:temp_build # Temporary tag for comparison
           cache-from: type=gha,scope=${{ github.workflow }}
