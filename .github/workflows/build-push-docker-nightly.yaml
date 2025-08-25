@@ -21,7 +21,7 @@ jobs:
         with:
           daemon-config: |
             {
-              "debug": true,
+              "debug": false,
               "features": {
                 "containerd-snapshotter": true
               }
@@ -58,17 +58,17 @@ jobs:
           SOURCE_DATE_EPOCH: 0
         with:
           context: .
-          push: false # Do not push yet
           platforms: linux/amd64,linux/arm64
           # labels: |
           #   org.opencontainers.image.source=${{ github.repository }}
           #   org.opencontainers.image.revision=${{ github.sha }}
           #   org.opencontainers.image.created=${{ steps.build_image.outputs.buildkitd-started-at }}
           #   org.opencontainers.image.version=${{ github.sha }}
+          push: false # Do not push yet
           load: true # Load the image into the local Docker cache
-          tags: ${{ vars.DOCKERHUB_REPOSITORY }}:temp_build # Temporary tag for comparison
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,scope=${{ github.workflow }},mode=max
+          tags: ${{ vars.DOCKERHUB_REPOSITORY }}:temp_build # Temporary tag for comparison
           outputs: type=image,name=${{ vars.DOCKERHUB_REPOSITORY }}:temp_build,push=false,digestfile=/tmp/temp_build_image_digest.txt
 
       - name: Compare Image Digest With Latest Image
@@ -96,22 +96,28 @@ jobs:
           # Clean up temporary image
           docker rmi ${{ vars.DOCKERHUB_REPOSITORY }}:temp_build || true
 
-      # - name: Log in to Docker Hub
-      #   if: steps.compare_digest_with_latest.outputs.needs_push == 'true'
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ vars.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        if: steps.compare_digest_with_latest.outputs.needs_push == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # - name: Build and push Docker image
-      #   if: steps.compare_digest_with_latest.outputs.needs_push == 'true'
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     context: .
-      #     platforms: linux/amd64,linux/arm64
-      #     push: true
-      #     cache-from: type=gha,scope=${{ github.workflow }}
-      #     cache-to: type=gha,scope=${{ github.workflow }},mode=max
-      #     tags: |
-      #       ${{ vars.DOCKERHUB_REPOSITORY }}:nightly-${{ env.git_commit_sha_short }}
-      #       ${{ vars.DOCKERHUB_REPOSITORY }}:latest
+      - name: Build and push Docker image
+        if: steps.compare_digest_with_latest.outputs.needs_push == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          # labels: |
+          #   org.opencontainers.image.source=${{ github.repository }}
+          #   org.opencontainers.image.revision=${{ github.sha }}
+          #   org.opencontainers.image.created=${{ steps.build_image.outputs.buildkitd-started-at }}
+          #   org.opencontainers.image.version=${{ github.sha }}
+          push: true
+          load: true # Load the image into the local Docker cache
+          cache-from: type=gha,scope=${{ github.workflow }}
+          cache-to: type=gha,scope=${{ github.workflow }},mode=max
+          tags: |
+            ${{ vars.DOCKERHUB_REPOSITORY }}:nightly-${{ env.git_commit_sha_short }}
+            ${{ vars.DOCKERHUB_REPOSITORY }}:latest
