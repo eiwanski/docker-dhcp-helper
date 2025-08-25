@@ -106,6 +106,8 @@ jobs:
       - name: Build and push Docker image
         if: steps.compare_digest_with_latest.outputs.needs_push == 'true'
         uses: docker/build-push-action@v6
+        env:
+          SOURCE_DATE_EPOCH: 0
         with:
           context: .
           platforms: linux/amd64,linux/arm64
