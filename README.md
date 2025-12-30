@@ -1,13 +1,13 @@
-# docker-dhcphelper
+# docker-dhcp-helper
 
 A simple, straightforward containerized DHCP relay agent to provide forwarding services to upstream DHCP servers.
 
-## About dhcphelper
+## About dhcp-helper
 
 Dockerhub images can be found here: [https://hub.docker.com/r/eiwanski/dhcp-helper](https://hub.docker.com/r/eiwanski/dhcp-helper)
 
 
-Dockerfile is based on alpine with the dhcphelper package installed.
+Dockerfile is based on alpine with the dhcp-helper package installed.
 The dhcp-helper binary is from the work of [Simon Kelley](https://thekelleys.org.uk/), binaries available at: [https://thekelleys.org.uk/dhcp-helper/](https://thekelleys.org.uk/dhcp-helper/)
 
 
